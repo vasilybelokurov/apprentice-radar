@@ -15,6 +15,13 @@ Data comes from the official DfE Display Advert API v2. Coverage is England only
 - Place names and postcodes are resolved with [Postcodes.io](https://postcodes.io/).
 - The DfE key is only ever a GitHub Actions secret (`DFE_API_KEY`) or, locally, in the macOS Keychain.
 
+## Keeping the schedules running
+
+GitHub switches off scheduled workflows in a public repository after 60 days without commits, and sends a warning
+email beforehand. No automatic keepalive is used. When the warning arrives, either push any real change or re-enable
+each workflow: **Actions → Sync and deploy / Send alerts → Enable workflow**. While the schedules are off, the site
+stays up and shows a "may be out of date" notice once the data is more than 48 hours old.
+
 ## Local setup
 
 ```bash
