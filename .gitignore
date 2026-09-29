@@ -1,0 +1,15 @@
+# local toolchain (project venv with Node/npm) and dependencies
+/.venv/
+/node_modules/
+
+# build output and generated data
+/dist/
+/data/
+
+# secrets: never commit
+.env*
+!.env.example
+
+# OS / logs
+.DS_Store
+*.log
