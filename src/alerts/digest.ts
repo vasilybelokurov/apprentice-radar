@@ -34,7 +34,7 @@ export interface Digest {
   refs: string[];
 }
 
-export function renderDigest(matches: Match[], c: SearchCriteria, searchUrl: string, today: Date): Digest {
+export function renderDigest(matches: Match[], c: SearchCriteria, searchUrl: string, today: Date, mention: string): Digest {
   const n = matches.length;
   const where = c.place ? ` near ${c.place.label.split(",")[0]}` : "";
   const title = `${n} new apprenticeship${n === 1 ? "" : "s"}${where} (${dateFmt.format(today)})`;
@@ -57,7 +57,9 @@ export function renderDigest(matches: Match[], c: SearchCriteria, searchUrl: str
     ].join("\n");
   });
   const body = [
-    `**${n} new vacanc${n === 1 ? "y" : "ies"}** since the last alert, for: ${md(describeCriteria(c))}.`,
+    // The @mention is what makes GitHub notify (and email) the owner: an issue assigned via the
+    // workflow token counts as the owner's own action, which GitHub never notifies about.
+    `@${mention} **${n} new vacanc${n === 1 ? "y" : "ies"}** since the last alert, for: ${md(describeCriteria(c))}.`,
     "",
     `[See every current match on Apprentice Radar](${searchUrl})`,
     "",

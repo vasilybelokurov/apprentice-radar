@@ -9,6 +9,11 @@ on:
     - cron: "23 7 * * 1" # Mondays 07:23, after the daily 05:17 sync
       timezone: "Europe/London"
   workflow_dispatch:
+    inputs:
+      test_notification:
+        description: "Only post a test @mention on the latest alert issue (checks that GitHub emails you)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -34,4 +39,6 @@ jobs:
       - name: Send alert
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run alerts
+          TEST_NOTIFICATION: ${{ inputs.test_notification }}
+        run: |
+          if [ "$TEST_NOTIFICATION" = "true" ]; then npm run alerts -- --test-notification; else npm run alerts; fi

@@ -27,6 +27,16 @@ if (!token || !repo) {
 const github = createGitHubClient({ token, repo });
 
 try {
+  if (process.argv.includes("--test-notification")) {
+    // Checks the email path: a bot comment @mentioning the owner on the latest alert issue.
+    const latest = (await github.listAlertIssues()).sort((a, b) => b.number - a.number)[0];
+    if (!latest) throw new Error("no alert issue yet to comment on; run a normal alert first");
+    const when = new Date().toLocaleString("en-GB", { timeZone: "Europe/London" });
+    await github.comment(latest.number, `@${config.assignee} Test notification from the Send alerts workflow (${when}). If this reached your inbox, weekly alerts will too.`);
+    console.log(`posted a test notification on issue #${latest.number} for @${config.assignee}`);
+    process.exit(0);
+  }
+
   const dataPath = arg("--data");
   let dataset: Dataset;
   if (dataPath) {

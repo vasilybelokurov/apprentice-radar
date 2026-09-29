@@ -42,7 +42,7 @@ export async function runAlert(
   if (fresh.length === 0) return result;
 
   const searchUrl = `${config.siteUrl.replace(/\/?$/, "/")}?${config.search}`;
-  const digest = renderDigest(fresh, criteria, searchUrl, now);
+  const digest = renderDigest(fresh, criteria, searchUrl, now, config.assignee);
   result.digest = digest;
   if (options.dryRun) return result;
 

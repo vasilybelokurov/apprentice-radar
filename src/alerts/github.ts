@@ -70,12 +70,17 @@ export function createGitHubClient(options: GitHubOptions) {
     return ((await r.json()) as { number: number }).number;
   }
 
+  async function comment(number: number, body: string) {
+    const r = await call("POST", `/issues/${number}/comments`, { body });
+    await expectOk(r, `comment on issue #${number}`);
+  }
+
   async function closeIssue(number: number) {
     const r = await call("PATCH", `/issues/${number}`, { state: "closed", state_reason: "completed" });
     await expectOk(r, `close issue #${number}`);
   }
 
-  return { listAlertIssues, ensureLabel, createIssue, closeIssue, redact };
+  return { listAlertIssues, ensureLabel, createIssue, comment, closeIssue, redact };
 }
 
 export type GitHubClient = ReturnType<typeof createGitHubClient>;

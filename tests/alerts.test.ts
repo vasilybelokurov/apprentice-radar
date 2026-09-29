@@ -65,7 +65,7 @@ describe("digest", () => {
   it("round-trips the refs marker", () => {
     const c = criteriaFromParams(new URLSearchParams(config.search));
     const matches = search([vac(), vac()], c, NOW.getTime());
-    const d = renderDigest(matches, c, "https://x/", NOW);
+    const d = renderDigest(matches, c, "https://x/", NOW, "vasilybelokurov");
     expect(parseSentRefs(d.body)).toEqual(d.refs);
     expect(d.title).toBe("2 new apprenticeships near Cambridge (5 Oct 2026)");
     expect(d.body).toContain("within 5 miles of Cambridge, Cambridgeshire · Level 2");
@@ -73,7 +73,7 @@ describe("digest", () => {
 
   it("escapes Markdown in source text", () => {
     const c = criteriaFromParams(new URLSearchParams(config.search));
-    const d = renderDigest(search([vac({ title: "Chef [urgent](http://evil)" })], c, NOW.getTime()), c, "https://x/", NOW);
+    const d = renderDigest(search([vac({ title: "Chef [urgent](http://evil)" })], c, NOW.getTime()), c, "https://x/", NOW, "vasilybelokurov");
     expect(d.body).toContain("Chef \\[urgent\\](http://evil)");
   });
 
@@ -93,6 +93,8 @@ describe("runAlert", () => {
     const first = await runAlert(config, dataset([a, b, far]), gh, { now: NOW });
     expect(first).toMatchObject({ matched: 2, alreadySent: 0, announced: 2, issueNumber: 1 });
     expect(gh.createIssue).toHaveBeenCalledWith(expect.any(String), expect.any(String), "vasilybelokurov");
+    // The @mention is what triggers GitHub's email (self-assignment does not notify).
+    expect(gh.createIssue.mock.calls[0]![1].startsWith("@vasilybelokurov ")).toBe(true);
 
     const second = await runAlert(config, dataset([a, b, far]), gh, { now: NOW });
     expect(second).toMatchObject({ matched: 2, alreadySent: 2, announced: 0, issueNumber: null });
