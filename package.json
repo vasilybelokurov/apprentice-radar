@@ -6,6 +6,16 @@
   "engines": {
     "node": "24.x"
   },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "sync": "node scripts/sync.ts",
+    "sync:local": "DFE_API_KEY=\"$(security find-generic-password -s apprentice-radar-dfe-key -w)\" node scripts/sync.ts",
+    "verify:dfe": "DFE_API_KEY=\"$(security find-generic-password -s apprentice-radar-dfe-key -w)\" node scripts/verify-dfe-api.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test"
+  },
   "dependencies": {
     "nodemailer": "10.0.12",
     "zod": "4.6.5"

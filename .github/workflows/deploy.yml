@@ -1,0 +1,61 @@
+# Sync vacancies from the DfE API, run checks, build the site and publish it to GitHub Pages.
+#
+# Runs daily, on every push to main (so code changes go live), and on demand.
+# It never runs for pull requests, so the DfE key is only available to runs started by the owner.
+# If the sync is incomplete or any check fails, nothing is published and yesterday's site stays up.
+#
+# Required repository secret: DFE_API_KEY
+name: Sync and deploy
+
+on:
+  schedule:
+    - cron: "17 5 * * *" # daily, away from the busy top of the hour
+      timezone: "Europe/London"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: Sync vacancies
+        env:
+          DFE_API_KEY: ${{ secrets.DFE_API_KEY }}
+        run: npm run sync
+      - run: npm run build
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

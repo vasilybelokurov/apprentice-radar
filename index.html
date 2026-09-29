@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Search open apprenticeship vacancies in England near you." />
+    <meta name="theme-color" content="#1d4e89" />
+    <title>Apprentice Radar</title>
+    <link rel="stylesheet" href="./src/web/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <h1>Apprentice Radar</h1>
+        <p class="coverage">Open apprenticeship vacancies in England, from the official Find an apprenticeship service.</p>
+        <p class="freshness" id="freshness" aria-live="polite"></p>
+      </div>
+    </header>
+
+    <main class="wrap layout">
+      <details class="filters-panel" id="filters-panel" open>
+        <summary>Filters</summary>
+        <form id="filters" novalidate>
+          <fieldset class="field">
+            <label for="loc">Town, city or postcode</label>
+            <div class="loc-row">
+              <input id="loc" name="loc" type="text" autocomplete="off" inputmode="search" />
+              <button type="button" id="loc-go">Find</button>
+            </div>
+            <p class="hint" id="loc-status" role="status"></p>
+            <ul class="choices" id="loc-choices" aria-label="Matching places" hidden></ul>
+          </fieldset>
+
+          <div class="field">
+            <label for="radius">Distance</label>
+            <select id="radius" name="radius">
+              <option value="5">Within 5 miles</option>
+              <option value="10">Within 10 miles</option>
+              <option value="15">Within 15 miles</option>
+              <option value="20">Within 20 miles</option>
+              <option value="30">Within 30 miles</option>
+              <option value="50">Within 50 miles</option>
+              <option value="100">Within 100 miles</option>
+            </select>
+          </div>
+
+          <fieldset class="field">
+            <legend>Level</legend>
+            <div class="checks" id="levels"></div>
+          </fieldset>
+
+          <div class="field">
+            <label for="route">Category</label>
+            <select id="route" name="route">
+              <option value="">All categories</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="q">Keywords</label>
+            <input id="q" name="q" type="search" placeholder="e.g. electrician, software" />
+          </div>
+
+          <div class="field">
+            <label for="emp">Employer</label>
+            <input id="emp" name="emp" type="search" />
+          </div>
+
+          <fieldset class="field">
+            <legend>Pay</legend>
+            <label for="minpay" class="sub">Minimum yearly pay (£)</label>
+            <input id="minpay" name="minpay" type="number" min="0" step="500" inputmode="numeric" placeholder="Any" />
+            <label class="check"><input type="checkbox" id="unk" checked /> Include vacancies without a stated figure</label>
+            <p class="hint">"Competitive" pay has no figure. For ranges, the lower end is used.</p>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>More</legend>
+            <label class="check"><input type="checkbox" id="dc" /> Disability Confident employers only</label>
+            <label class="check"><input type="checkbox" id="fdn" /> Foundation apprenticeships only</label>
+            <label class="check"><input type="checkbox" id="nat" /> Include roles recruiting nationally</label>
+          </fieldset>
+
+          <button type="button" id="reset" class="secondary">Reset filters</button>
+        </form>
+      </details>
+
+      <section class="results" aria-labelledby="count">
+        <div class="results-bar">
+          <h2 id="count" aria-live="polite">Loading vacancies…</h2>
+          <label class="sort">Sort
+            <select id="sort">
+              <option value="distance">Nearest</option>
+              <option value="newest">Newest</option>
+              <option value="closing">Closing soonest</option>
+              <option value="pay">Highest pay</option>
+            </select>
+          </label>
+        </div>
+        <ol class="cards" id="cards"></ol>
+        <button type="button" id="more" class="secondary" hidden>Show more</button>
+      </section>
+    </main>
+
+    <script type="module" src="./src/web/main.ts"></script>
+  </body>
+</html>

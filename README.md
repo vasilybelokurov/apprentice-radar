@@ -1,21 +1,28 @@
 # Apprentice Radar
 
-Search currently open apprenticeship vacancies in England near a location, and get email alerts
-for new matches. Data comes from the official DfE Display Advert API v2.
+Search currently open apprenticeship vacancies in England near a location.
+Live site: **https://vasilybelokurov.github.io/apprentice-radar/**
 
-Runs entirely on GitHub: Actions sync vacancies daily and send alerts weekly; the search page is
-served by GitHub Pages. The original project brief is in [docs/](docs/).
+Data comes from the official DfE Display Advert API v2. Coverage is England only.
+
+## How it works
+
+- A GitHub Action (`.github/workflows/deploy.yml`) runs daily, on every push to `main`, and on demand. It fetches every
+  live vacancy, checks the data and writes `data/vacancies.json`. It then runs the tests, builds the page and publishes
+  both to GitHub Pages. If the sync is incomplete or a check fails, nothing is published and the previous site stays up.
+- The page is static. Filtering, distance and sorting run in the browser (`src/lib/search.ts`), and the search is
+  kept in the URL so it can be bookmarked.
+- Place names and postcodes are resolved with [Postcodes.io](https://postcodes.io/).
+- The DfE key is only ever a GitHub Actions secret (`DFE_API_KEY`) or, locally, in the macOS Keychain.
 
 ## Local setup
 
 ```bash
 source .venv/bin/activate   # project-local Node 24 + npm
 npm ci
+npm run check               # type check + tests
+npm run sync:local          # live sync; reads the key from the Keychain
+npm run dev                 # http://localhost:5173
 ```
 
-Check the DfE API key (stored in the macOS Keychain, never in files):
-
-```bash
-DFE_API_KEY="$(security find-generic-password -s apprentice-radar-dfe-key -w)" \
-  node scripts/verify-dfe-api.ts
-```
+The original project brief is in [docs/](docs/).
