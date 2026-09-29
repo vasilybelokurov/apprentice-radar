@@ -7,7 +7,7 @@ export const SORTS = ["distance", "newest", "closing", "pay"] as const;
 export type Sort = (typeof SORTS)[number];
 
 export const DEFAULT_LOCATION_QUERY = "Cambridge, Cambridgeshire";
-export const DEFAULT_RADIUS_MILES = 20;
+export const DEFAULT_RADIUS_MILES = 5;
 export const MAX_RADIUS_MILES = 300;
 export const DEFAULT_LEVELS = [2];
 

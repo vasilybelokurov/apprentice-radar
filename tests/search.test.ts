@@ -42,7 +42,8 @@ function vac(over: Partial<Vacancy> & { at?: { lat: number; lon: number }[] } = 
     ...rest,
   };
 }
-const crit = (over: Partial<SearchCriteria> = {}): SearchCriteria => ({ ...defaultCriteria(), place: CAMBRIDGE, ...over });
+// Tests use a 20-mile radius so Ely (~14.9 miles) is inside unless a test says otherwise.
+const crit = (over: Partial<SearchCriteria> = {}): SearchCriteria => ({ ...defaultCriteria(), place: CAMBRIDGE, radiusMiles: 20, ...over });
 const refs = (vs: Vacancy[], c: SearchCriteria) => search(vs, c, NOW).map((m) => m.vacancy.ref);
 
 describe("distance", () => {
@@ -180,9 +181,9 @@ describe("URL state", () => {
     expect(back).toEqual({ ...c, place: { label: CAMBRIDGE.label, lat: 52.2049, lon: 0.1197 } });
   });
 
-  it("defaults when empty: Level 2, 20 miles, nearest first, unknown pay included", () => {
+  it("defaults when empty: Level 2, 5 miles, nearest first, unknown pay included", () => {
     expect(criteriaFromParams(new URLSearchParams())).toEqual(defaultCriteria());
-    expect(defaultCriteria()).toMatchObject({ levels: [2], radiusMiles: 20, sort: "distance", includeUnknownPay: true, includeNational: false, place: null });
+    expect(defaultCriteria()).toMatchObject({ levels: [2], radiusMiles: 5, sort: "distance", includeUnknownPay: true, includeNational: false, place: null });
   });
 
   it("keeps default values out of the URL", () => {
@@ -198,7 +199,7 @@ describe("URL state", () => {
   it("rejects invalid values", () => {
     const c = criteriaFromParams(new URLSearchParams("lat=999&lon=0&r=-5&lvl=9,x&sort=evil&minpay=abc"));
     expect(c.place).toBeNull();
-    expect(c.radiusMiles).toBe(20);
+    expect(c.radiusMiles).toBe(5);
     expect(c.levels).toEqual([2]);
     expect(c.sort).toBe("distance");
     expect(c.minPay).toBeNull();
