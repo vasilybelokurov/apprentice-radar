@@ -13,3 +13,6 @@
 # OS / logs
 .DS_Store
 *.log
+
+# private working journal (Dropbox only)
+/JOURNAL.md
