@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Jobs in Cambridge for an 18-year-old with GCSEs but no A levels." />
+    <meta name="theme-color" content="#1d4e89" />
+    <title>Cambridge Jobs with GCSEs</title>
+    <link rel="stylesheet" href="./src/web/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <h1><a href="./" class="home">Apprentice Radar</a></h1>
+        <p class="coverage">Jobs (not apprenticeships) within 5 miles of Cambridge, from reed.co.uk.</p>
+        <p class="freshness" id="freshness" aria-live="polite"></p>
+        <p class="site-nav"><a href="./">← Apprenticeship search</a></p>
+      </div>
+    </header>
+
+    <main class="wrap layout">
+      <details class="filters-panel" id="filters-panel" open>
+        <summary>Filters</summary>
+        <form id="filters" novalidate>
+          <fieldset class="field">
+            <legend>About this list</legend>
+            <p class="hint">
+              Jobs a school leaver with GCSEs but no A levels could apply for. Jobs are left out when the advert asks for a
+              degree, A levels, a Level 3+ or professional qualification, an HGV licence, "experienced" applicants, or two or more
+              years' experience. The advert's wording decides, so check it before applying.
+            </p>
+          </fieldset>
+          <div class="field">
+            <label for="q">Keywords</label>
+            <input id="q" type="search" placeholder="e.g. warehouse, retail, school" />
+          </div>
+          <fieldset class="field">
+            <legend>Show</legend>
+            <label class="check"><input type="checkbox" id="ft" /> Full-time only</label>
+            <label class="check"><input type="checkbox" id="perm" /> Permanent only</label>
+            <label class="check"><input type="checkbox" id="noexp" /> Hide jobs that ask for some experience</label>
+            <label class="check"><input type="checkbox" id="nodrive" /> Hide jobs that need a driving licence</label>
+          </fieldset>
+        </form>
+      </details>
+
+      <section class="results" aria-labelledby="count">
+        <div class="results-bar">
+          <h2 id="count" aria-live="polite">Loading jobs…</h2>
+          <label class="sort">Sort
+            <select id="sort">
+              <option value="distance">Nearest</option>
+              <option value="newest">Newest</option>
+              <option value="closing">Closing soonest</option>
+              <option value="pay">Highest pay</option>
+            </select>
+          </label>
+        </div>
+        <ol class="cards" id="cards"></ol>
+        <button type="button" id="more" class="secondary" hidden>Show more</button>
+
+        <details class="excluded" id="excluded" hidden>
+          <summary id="excluded-summary"></summary>
+          <p class="hint">Each job shows the reason and the sentence from the advert (or its title or pay) that decided it.</p>
+          <ul id="excluded-list"></ul>
+        </details>
+        <p class="hint attribution">Job data from <a href="https://www.reed.co.uk/" target="_blank" rel="noopener noreferrer">reed.co.uk</a>.</p>
+      </section>
+    </main>
+
+    <script type="module" src="./src/web/jobs.ts"></script>
+  </body>
+</html>

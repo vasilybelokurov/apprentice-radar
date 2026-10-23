@@ -8,5 +8,6 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rolldownOptions: { input: { main: "index.html", jobs: "jobs.html" } },
   },
 });

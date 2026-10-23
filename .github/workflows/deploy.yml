@@ -4,7 +4,7 @@
 # It never runs for pull requests, so the DfE key is only available to runs started by the owner.
 # If the sync is incomplete or any check fails, nothing is published and yesterday's site stays up.
 #
-# Required repository secret: DFE_API_KEY
+# Repository secrets: DFE_API_KEY (required), REED_API_KEY (jobs page; without it the jobs page keeps its last data)
 name: Sync and deploy
 
 on:
@@ -40,6 +40,11 @@ jobs:
         env:
           DFE_API_KEY: ${{ secrets.DFE_API_KEY }}
         run: npm run sync
+      # Never fails the deploy: on any Reed problem it keeps the last published jobs.json.
+      - name: Sync jobs (Reed)
+        env:
+          REED_API_KEY: ${{ secrets.REED_API_KEY }}
+        run: npm run sync:jobs
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

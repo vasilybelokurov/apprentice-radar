@@ -64,3 +64,60 @@ export interface Dataset {
   sourceCount: number;
   vacancies: Vacancy[];
 }
+
+// ---------- jobs (Reed) ----------
+
+/** Verdict of the "suitable with GCSEs, no A levels" rule (src/lib/jobs-fit.ts). */
+export interface JobFit {
+  suitable: boolean;
+  /** Why it was left out, e.g. "Needs a degree". */
+  reasons: string[];
+  /** For each reason, the advert sentence (or title/pay) that triggered it. */
+  evidence: string[];
+  /** Shown on the card, e.g. "Driving licence required". */
+  labels: string[];
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  employer: string | null;
+  /** Reed location: a town or a postcode. */
+  location: string;
+  lat: number | null;
+  lon: number | null;
+  /** Straight-line distance from the origin of the dataset. */
+  miles: number | null;
+  posted: string | null;
+  expires: string | null;
+  pay: {
+    /** e.g. "£21,257 - £23,233 per annum" or "£14.24 - £15.00 per hour". */
+    text: string | null;
+    /** Reed salaryType: "per annum" | "per hour" | "per day" | ... */
+    type: string | null;
+    min: number | null;
+    max: number | null;
+    /** Yearly figure from Reed, when it gives one. */
+    minYearly: number | null;
+  };
+  partTime: boolean | null;
+  /** Reed contractType: "Permanent" | "Temporary" | "Contract". */
+  contract: string | null;
+  /** Start of the advert text (plain), for the card. */
+  summary: string | null;
+  url: string;
+  /** True when the verdict comes from the whole advert (Reed details), not only the title/location. */
+  fullAdvert: boolean;
+  fit: JobFit;
+}
+
+export interface JobsDataset {
+  generatedAt: string;
+  source: string;
+  /** Changes whenever the suitability rule changes; cached verdicts from other versions are not reused. */
+  ruleVersion: number;
+  origin: { label: string; lat: number; lon: number };
+  radiusMiles: number;
+  /** Every job within the radius, suitable or not. */
+  jobs: Job[];
+}

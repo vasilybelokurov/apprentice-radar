@@ -19,18 +19,20 @@ export function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<
   return node;
 }
 
-/** Loads vacancies.json; null on failure. */
-export async function loadDataset(): Promise<Dataset | null> {
+/** Loads a published JSON file (vacancies.json, jobs.json); null on failure. */
+export async function loadJson<T>(path: string): Promise<T | null> {
   try {
-    const response = await fetch("./vacancies.json", { cache: "no-cache" });
+    const response = await fetch(path, { cache: "no-cache" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return (await response.json()) as Dataset;
+    return (await response.json()) as T;
   } catch {
     return null;
   }
 }
 
-export function showFreshness(target: HTMLElement, dataset: Dataset) {
+export const loadDataset = () => loadJson<Dataset>("./vacancies.json");
+
+export function showFreshness(target: HTMLElement, dataset: Pick<Dataset, "generatedAt">) {
   const ageHours = (Date.now() - Date.parse(dataset.generatedAt)) / 3_600_000;
   target.textContent = `Data updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(dataset.generatedAt))}`;
   if (ageHours > STALE_HOURS) {

@@ -14,8 +14,14 @@ Data comes from the official DfE Display Advert API v2. Coverage is England only
   kept in the URL so it can be bookmarked.
 - The "Open with GCSEs" filter keeps vacancies whose essential entry requirements are no more than GCSEs or
   Functional Skills, and leaves out degree apprenticeships (`src/lib/requirements.ts`).
+- `jobs.html` lists ordinary jobs (not apprenticeships) within 5 miles of Cambridge from the
+  [Reed Jobseeker API](https://www.reed.co.uk/developers/jobseeker), judged for an 18-year-old with GCSEs but no
+  A levels (`src/lib/jobs-fit.ts`). Reed has no structured requirements, so the rule reads the advert wording;
+  every left-out job is listed with the sentence that decided it. `scripts/sync-jobs.ts` fetches full adverts only
+  for jobs not already in the published `jobs.json`, and keeps the last published file if Reed fails.
 - Place names and postcodes are resolved with [Postcodes.io](https://postcodes.io/).
-- The DfE key is only ever a GitHub Actions secret (`DFE_API_KEY`) or, locally, in the macOS Keychain.
+- API keys are only ever GitHub Actions secrets (`DFE_API_KEY`, `REED_API_KEY`) or, locally, in the macOS Keychain
+  (`apprentice-radar-dfe-key`, `apprentice-radar-reed-key`).
 
 ## Keeping the schedules running
 
@@ -30,7 +36,8 @@ stays up and shows a "may be out of date" notice once the data is more than 48 h
 source .venv/bin/activate   # project-local Node 24 + npm
 npm ci
 npm run check               # type check + tests
-npm run sync:local          # live sync; reads the key from the Keychain
+npm run sync:local          # live apprenticeship sync; reads the key from the Keychain
+npm run sync:jobs:local     # live jobs sync (Reed); reads the key from the Keychain
 npm run dev                 # http://localhost:5173
 ```
 
