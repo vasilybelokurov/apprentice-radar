@@ -113,6 +113,17 @@ describe("search filters", () => {
     expect(withNat[1]!.nearest).toBeNull();
   });
 
+  it("GCSEs only: drops essential A levels and Levels 6-7, keeps preferred A levels", () => {
+    const req = (type: string, essential: boolean) => ({ essential, type, subject: null, grade: null });
+    const open = vac({ requirements: [req("GCSE", true)] });
+    const preferred = vac({ requirements: [req("A Level", false)] });
+    const needsA = vac({ requirements: [req("A Level", true)] });
+    const degree = vac({ course: { title: "D", level: 6, route: "Digital", type: "Standard" } });
+    const all = [open, preferred, needsA, degree];
+    expect(refs(all, crit({ levels: [], gcseOnly: true })).sort()).toEqual([open.ref, preferred.ref].sort());
+    expect(refs(all, crit({ levels: [] }))).toHaveLength(4);
+  });
+
   it("filters by category", () => {
     const a = vac();
     const b = vac({ course: { title: "C", level: 2, route: "Care services", type: "Standard" } });
@@ -184,7 +195,7 @@ describe("sorting", () => {
 
 describe("URL state", () => {
   it("round-trips a full search", () => {
-    const c = crit({ radiusMiles: 30, levels: [2, 3], routes: ["Digital"], keywords: "software", employer: "acme", minPay: 18000, includeUnknownPay: false, disabilityConfidentOnly: true, foundationOnly: true, includeNational: true, sort: "pay" });
+    const c = crit({ radiusMiles: 30, levels: [2, 3], routes: ["Digital"], keywords: "software", employer: "acme", minPay: 18000, includeUnknownPay: false, disabilityConfidentOnly: true, foundationOnly: true, gcseOnly: true, includeNational: true, sort: "pay" });
     const back = criteriaFromParams(new URLSearchParams(criteriaToParams(c).toString()));
     expect(back).toEqual({ ...c, place: { label: CAMBRIDGE.label, lat: 52.2049, lon: 0.1197 } });
   });

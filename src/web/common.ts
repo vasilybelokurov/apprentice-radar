@@ -1,4 +1,5 @@
 // Shared by the pages: data loading, freshness notice and vacancy cards.
+import { describeRequirement, gcseFit } from "../lib/requirements.ts";
 import type { Match } from "../lib/search.ts";
 import type { Dataset } from "../lib/types.ts";
 
@@ -43,6 +44,19 @@ export interface CardExtras {
   badges?: [string, string][];
   /** Extra rows appended to the details list. */
   rows?: [string, Node | string][];
+}
+
+/** Entry requirements row and labels, shown when the "Open with GCSEs" filter is on. */
+export function gcseExtras(m: Match): CardExtras {
+  const fit = gcseFit(m.vacancy);
+  const badges: [string, string][] = [];
+  if (fit.level3Preferred) badges.push(["A levels or equivalent preferred", "warn"]);
+  if (fit.drivingLicence) badges.push(["Driving licence required", "warn"]);
+  const reqs = [...m.vacancy.requirements].sort((a, b) => Number(b.essential) - Number(a.essential));
+  const value: Node | string = reqs.length
+    ? el("ul", { class: "reqs" }, ...reqs.map((r) => el("li", {}, `${r.essential ? "Essential" : "Preferred"}: ${describeRequirement(r)}`)))
+    : "None listed";
+  return { badges, rows: [["Entry requirements", value]] };
 }
 
 export function card(m: Match, now: number, extras: CardExtras = {}): HTMLLIElement {

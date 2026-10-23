@@ -1,5 +1,6 @@
 // Search criteria, URL (de)serialisation, matching, distance and sorting.
 // Shared by the web page and the alert job so both select exactly the same vacancies.
+import { gcseFit } from "./requirements.ts";
 import type { Location, Vacancy } from "./types.ts";
 
 export const LEVELS = [2, 3, 4, 5, 6, 7] as const;
@@ -32,6 +33,8 @@ export interface SearchCriteria {
   includeUnknownPay: boolean;
   disabilityConfidentOnly: boolean;
   foundationOnly: boolean;
+  /** Only vacancies open to someone with GCSEs but no A levels (see requirements.ts); excludes Levels 6-7. */
+  gcseOnly: boolean;
   includeNational: boolean;
   sort: Sort;
 }
@@ -47,6 +50,7 @@ export const defaultCriteria = (): SearchCriteria => ({
   includeUnknownPay: true,
   disabilityConfidentOnly: false,
   foundationOnly: false,
+  gcseOnly: false,
   includeNational: false,
   sort: "distance",
 });
@@ -104,6 +108,8 @@ export function matchVacancy(v: Vacancy, c: SearchCriteria, now: number): Match 
   if (c.routes.length && (v.course.route === null || !c.routes.includes(v.course.route))) return null;
   if (c.disabilityConfidentOnly && !v.disabilityConfident) return null;
   if (c.foundationOnly && v.course.type !== "Foundation") return null;
+  // Degree apprenticeships (Levels 6-7) normally need A levels or equivalent even when the ad lists none.
+  if (c.gcseOnly && ((v.course.level ?? 0) >= 6 || !gcseFit(v).suitable)) return null;
 
   if (c.minPay !== null) {
     if (v.pay.minAnnual === null) {
@@ -192,6 +198,7 @@ export function criteriaFromParams(params: URLSearchParams): SearchCriteria {
   c.includeUnknownPay = params.get("unk") !== "0";
   c.disabilityConfidentOnly = params.get("dc") === "1";
   c.foundationOnly = params.get("fdn") === "1";
+  c.gcseOnly = params.get("gcse") === "1";
   c.includeNational = params.get("nat") === "1";
   const sort = params.get("sort");
   if (sort && (SORTS as readonly string[]).includes(sort)) c.sort = sort as Sort;
@@ -217,6 +224,7 @@ export function criteriaToParams(c: SearchCriteria): URLSearchParams {
   if (!c.includeUnknownPay) p.set("unk", "0");
   if (c.disabilityConfidentOnly) p.set("dc", "1");
   if (c.foundationOnly) p.set("fdn", "1");
+  if (c.gcseOnly) p.set("gcse", "1");
   if (c.includeNational) p.set("nat", "1");
   if (c.sort !== d.sort) p.set("sort", c.sort);
   return p;

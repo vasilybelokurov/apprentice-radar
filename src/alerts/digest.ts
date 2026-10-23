@@ -24,6 +24,7 @@ export function describeCriteria(c: SearchCriteria): string {
   if (c.minPay !== null) parts.push(`pay from £${c.minPay.toLocaleString("en-GB")}${c.includeUnknownPay ? " (or not stated)" : ""}`);
   if (c.disabilityConfidentOnly) parts.push("Disability Confident only");
   if (c.foundationOnly) parts.push("Foundation only");
+  if (c.gcseOnly) parts.push("open with GCSEs (no A levels)");
   if (c.includeNational) parts.push("including national roles");
   return parts.join(" · ");
 }

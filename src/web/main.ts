@@ -10,7 +10,7 @@ import {
   type SearchCriteria,
 } from "../lib/search.ts";
 import type { Dataset, Vacancy } from "../lib/types.ts";
-import { card, el, loadDataset, showFreshness } from "./common.ts";
+import { card, el, gcseExtras, loadDataset, showFreshness } from "./common.ts";
 
 const PAGE_SIZE = 25;
 
@@ -32,6 +32,7 @@ const els = {
   unk: $<HTMLInputElement>("unk"),
   dc: $<HTMLInputElement>("dc"),
   fdn: $<HTMLInputElement>("fdn"),
+  gcse: $<HTMLInputElement>("gcse"),
   nat: $<HTMLInputElement>("nat"),
   sort: $<HTMLSelectElement>("sort"),
   reset: $<HTMLButtonElement>("reset"),
@@ -91,6 +92,7 @@ function writeControls(c: SearchCriteria) {
   els.unk.checked = c.includeUnknownPay;
   els.dc.checked = c.disabilityConfidentOnly;
   els.fdn.checked = c.foundationOnly;
+  els.gcse.checked = c.gcseOnly;
   els.nat.checked = c.includeNational;
   els.sort.value = c.sort;
 }
@@ -108,6 +110,7 @@ function readControls(): SearchCriteria {
     includeUnknownPay: els.unk.checked,
     disabilityConfidentOnly: els.dc.checked,
     foundationOnly: els.fdn.checked,
+    gcseOnly: els.gcse.checked,
     includeNational: els.nat.checked,
     sort: els.sort.value as SearchCriteria["sort"],
   };
@@ -172,7 +175,7 @@ async function findLocation(query: string) {
 function renderMore() {
   const now = Date.now();
   const next = matches.slice(shown, shown + PAGE_SIZE);
-  els.cards.append(...next.map((m) => card(m, now)));
+  els.cards.append(...next.map((m) => card(m, now, criteria.gcseOnly ? gcseExtras(m) : {})));
   shown += next.length;
   els.more.hidden = shown >= matches.length;
   els.more.textContent = `Show more (${matches.length - shown} left)`;
