@@ -14,7 +14,7 @@ describe("DfE client requests", () => {
     const f = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => jsonResponse(page([], 1, 1, 0)));
     await client(f as unknown as typeof fetch).getPage(1);
     const [url, init] = f.mock.calls[0]!;
-    expect(String(url)).toContain("/vacancy?PageNumber=1&PageSize=100&Sort=AgeDesc");
+    expect(String(url)).toContain("/vacancy?PageNumber=1&PageSize=100&Sort=AgeDesc&IncludeDetails=true");
     expect(String(url)).not.toContain(KEY);
     expect(init!.headers).toMatchObject({ "X-Version": "2", "Ocp-Apim-Subscription-Key": KEY });
   });

@@ -48,6 +48,10 @@ export const VacancySchema = z.object({
   isDisabilityConfident: z.boolean().nullish(),
   vacancyUrl: text,
   isNationalVacancy: z.boolean().nullish(),
+  // Only returned with IncludeDetails=true.
+  qualifications: z
+    .array(z.object({ weighting: text, qualificationType: text, subject: text, grade: text }))
+    .nullish(),
 });
 
 export type DfeVacancy = z.infer<typeof VacancySchema>;

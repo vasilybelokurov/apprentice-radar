@@ -1,6 +1,6 @@
 // Converts validated DfE records into the compact published Vacancy model.
 import { parseAnnualPay } from "../lib/pay.ts";
-import type { Location, Vacancy } from "../lib/types.ts";
+import type { Location, Requirement, Vacancy } from "../lib/types.ts";
 import type { DfeVacancy } from "./dfe-schema.ts";
 
 const FAA_VACANCY_URL = "https://www.findapprenticeship.service.gov.uk/apprenticeship/reference/";
@@ -39,6 +39,15 @@ export function normalizeLocations(addresses: DfeVacancy["addresses"]): Location
   });
 }
 
+export function normalizeRequirements(qualifications: DfeVacancy["qualifications"]): Requirement[] {
+  return (qualifications ?? []).map((q) => ({
+    essential: clean(q.weighting)?.toLowerCase() === "essential",
+    type: clean(q.qualificationType),
+    subject: clean(q.subject),
+    grade: clean(q.grade),
+  }));
+}
+
 export function normalizeVacancy(v: DfeVacancy): Vacancy {
   const payText = clean(v.wage?.wageAdditionalInformation);
   // Only yearly wording is parsed; the source currently reports every wage as "Annually".
@@ -64,6 +73,7 @@ export function normalizeVacancy(v: DfeVacancy): Vacancy {
     duration: clean(v.expectedDuration),
     positions: v.numberOfPositions ?? null,
     pay: { type: clean(v.wage?.wageType), text: payText, minAnnual, maxAnnual },
+    requirements: normalizeRequirements(v.qualifications),
     locations: normalizeLocations(v.addresses),
     national: v.isNationalVacancy ?? false,
     disabilityConfident: v.isDisabilityConfident ?? false,

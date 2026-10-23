@@ -33,6 +33,7 @@ function vac(over: Partial<Vacancy> = {}): Vacancy {
     duration: null,
     positions: 1,
     pay: { type: "Custom", text: "£18,000 a year", minAnnual: 18000, maxAnnual: 18000 },
+    requirements: [],
     locations: [{ label: "Cambridge CB1 1AA", postcode: "CB1 1AA", lat: 52.2, lon: 0.12 }],
     national: false,
     disabilityConfident: false,

@@ -35,6 +35,7 @@ function vac(over: Partial<Vacancy> & { at?: { lat: number; lon: number }[] } = 
     duration: "1 year",
     positions: 1,
     pay: { type: "ApprenticeshipMinimum", text: "£16,640 a year", minAnnual: 16640, maxAnnual: 16640 },
+    requirements: [],
     locations: (at ?? [{ lat: 52.2, lon: 0.12 }]).map((p, i) => ({ label: `Place ${i}`, postcode: null, ...p })),
     national: false,
     disabilityConfident: false,

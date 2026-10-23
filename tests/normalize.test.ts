@@ -67,6 +67,20 @@ describe("normalizeVacancy", () => {
     expect(normalize({ course: { title: "X", level: 2, route: "Digital", type: "Foundation" } }).course.type).toBe("Foundation");
   });
 
+  it("maps entry requirements, keeping the employer's wording", () => {
+    const qualifications = [
+      { weighting: "Essential", qualificationType: "GCSE", subject: "English and Maths", grade: "9-4/A*-C" },
+      { weighting: "Desired", qualificationType: "A Level", subject: " Business ", grade: "" },
+      { weighting: "Desired", subject: "Drivers Licence" },
+    ];
+    expect(normalize({ qualifications }).requirements).toEqual([
+      { essential: true, type: "GCSE", subject: "English and Maths", grade: "9-4/A*-C" },
+      { essential: false, type: "A Level", subject: "Business", grade: null },
+      { essential: false, type: null, subject: "Drivers Licence", grade: null },
+    ]);
+    expect(normalize().requirements).toEqual([]);
+  });
+
   it("accepts a numeric vacancyReference", () => {
     expect(normalize({ vacancyReference: 42 }).ref).toBe("42");
   });

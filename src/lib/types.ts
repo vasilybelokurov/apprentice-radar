@@ -18,6 +18,16 @@ export interface Pay {
   maxAnnual: number | null;
 }
 
+/** One entry requirement, as the employer wrote it (DfE "qualifications"). */
+export interface Requirement {
+  /** DfE weighting "Essential"; anything else ("Desired") is false. */
+  essential: boolean;
+  /** Source qualification type, e.g. "GCSE" or "A Level"; free text for some employers. */
+  type: string | null;
+  subject: string | null;
+  grade: string | null;
+}
+
 export interface Vacancy {
   ref: string;
   title: string;
@@ -40,6 +50,7 @@ export interface Vacancy {
   duration: string | null;
   positions: number | null;
   pay: Pay;
+  requirements: Requirement[];
   locations: Location[];
   national: boolean;
   disabilityConfident: boolean;

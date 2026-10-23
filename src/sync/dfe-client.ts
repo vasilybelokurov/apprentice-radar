@@ -83,6 +83,8 @@ export function createDfeClient(options: ClientOptions) {
       PageNumber: String(pageNumber),
       PageSize: String(MAX_PAGE_SIZE),
       Sort: "AgeDesc",
+      // Adds full-text fields and the structured entry requirements ("qualifications").
+      IncludeDetails: "true",
     });
     const parsed = ListPageSchema.safeParse(await getJson(`/vacancy?${query}`));
     if (!parsed.success) throw new DfeApiError(`unexpected page ${pageNumber} shape: ${parsed.error.message}`, null);

@@ -5,5 +5,9 @@ export default defineConfig({
   base: "./",
   // data/ holds vacancies.json written by the sync; it is served and copied into dist/ as-is.
   publicDir: "data",
-  build: { outDir: "dist", emptyOutDir: true },
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    rolldownOptions: { input: { main: "index.html", gcse: "gcse.html" } },
+  },
 });

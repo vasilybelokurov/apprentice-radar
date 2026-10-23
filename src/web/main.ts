@@ -10,12 +10,9 @@ import {
   type SearchCriteria,
 } from "../lib/search.ts";
 import type { Dataset, Vacancy } from "../lib/types.ts";
+import { card, el, loadDataset, showFreshness } from "./common.ts";
 
 const PAGE_SIZE = 25;
-const DAY_MS = 86_400_000;
-const NEW_DAYS = 7;
-const CLOSING_SOON_DAYS = 7;
-const STALE_HOURS = 48;
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const els = {
@@ -49,19 +46,6 @@ let dataset: Dataset | null = null;
 let criteria: SearchCriteria = criteriaFromParams(new URLSearchParams(location.search));
 let matches: Match[] = [];
 let shown = 0;
-
-// ---------- formatting ----------
-
-const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
-const fmtDate = (iso: string | null) => (iso ? dateFmt.format(new Date(iso)) : "Not given");
-const fmtMiles = (m: number) => (m < 10 ? m.toFixed(1) : Math.round(m).toString());
-
-function el<K extends keyof HTMLElementTagNameMap>(tag: K, attrs: Record<string, string> = {}, ...children: (Node | string | null)[]) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
-  for (const c of children) if (c !== null) node.append(c);
-  return node;
-}
 
 // ---------- filters <-> criteria ----------
 
@@ -185,49 +169,6 @@ async function findLocation(query: string) {
 
 // ---------- results ----------
 
-function card(m: Match, now: number): HTMLLIElement {
-  const v = m.vacancy;
-  const badges: HTMLElement[] = [];
-  const badge = (text: string, cls: string) => badges.push(el("li", { class: `badge ${cls}` }, text));
-  if (now - Date.parse(v.posted) <= NEW_DAYS * DAY_MS) badge("New", "new");
-  if (Date.parse(v.closes) - now <= CLOSING_SOON_DAYS * DAY_MS) badge("Closing soon", "soon");
-  if (v.disabilityConfident) badge("Disability Confident", "info");
-  if (v.national) badge("Recruiting nationally", "info");
-  if (v.course.type === "Foundation") badge("Foundation", "info");
-
-  let where: string;
-  if (v.national) where = "Recruiting nationally (no single location)";
-  else if (m.nearest) where = `${m.nearest.location.label} · ${fmtMiles(m.nearest.miles)} miles`;
-  else where = v.locations[0]?.label ?? "Not given";
-  const others = v.locations.length - 1;
-
-  const rows: [string, Node | string][] = [
-    ["Where", others > 0 ? `${where} (also ${others} other location${others > 1 ? "s" : ""})` : where],
-    ["Pay", v.pay.text ?? "Not given"],
-    ["Closes", fmtDate(v.closes)],
-    ["Starts", fmtDate(v.starts)],
-    ["Posted", fmtDate(v.posted)],
-  ];
-  if (v.duration) rows.push(["Duration", v.duration]);
-
-  const level = v.course.level ? `Level ${v.course.level}` : "Level not given";
-  const title = el("a", { href: v.url, target: "_blank", rel: "noopener noreferrer" }, v.title);
-  return el(
-    "li",
-    { class: "card" },
-    el("h3", {}, title),
-    el("p", { class: "employer" }, v.employer ?? "Employer not given"),
-    el("p", { class: "course" }, [level, v.course.title, v.course.route].filter(Boolean).join(" · ")),
-    badges.length ? el("ul", { class: "badges", "aria-label": "Labels" }, ...badges) : null,
-    el("dl", {}, ...rows.flatMap(([k, val]) => [el("dt", {}, k), el("dd", {}, val)])),
-    el(
-      "p",
-      { class: "actions" },
-      el("a", { href: v.url, target: "_blank", rel: "noopener noreferrer" }, "View and apply on Find an apprenticeship ↗"),
-    ),
-  );
-}
-
 function renderMore() {
   const now = Date.now();
   const next = matches.slice(shown, shown + PAGE_SIZE);
@@ -265,21 +206,12 @@ function debounce(fn: () => void, ms: number) {
 }
 
 async function start() {
-  try {
-    const response = await fetch("./vacancies.json", { cache: "no-cache" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    dataset = (await response.json()) as Dataset;
-  } catch {
+  dataset = await loadDataset();
+  if (!dataset) {
     els.count.textContent = "Couldn't load vacancy data. Please reload the page.";
     return;
   }
-
-  const ageHours = (Date.now() - Date.parse(dataset.generatedAt)) / 3_600_000;
-  els.freshness.textContent = `Data updated ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(dataset.generatedAt))}`;
-  if (ageHours > STALE_HOURS) {
-    els.freshness.textContent += " · may be out of date; check closing dates on the official page";
-    els.freshness.classList.add("stale");
-  }
+  showFreshness(els.freshness, dataset);
 
   buildStaticControls(dataset.vacancies);
   writeControls(criteria);
