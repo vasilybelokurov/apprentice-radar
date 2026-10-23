@@ -49,12 +49,14 @@
             <div class="checks" id="levels"></div>
           </fieldset>
 
-          <div class="field">
-            <label for="route">Category</label>
-            <select id="route" name="route">
-              <option value="">All categories</option>
-            </select>
-          </div>
+          <fieldset class="field">
+            <legend>Category</legend>
+            <details class="routes-picker">
+              <summary id="routes-summary">All categories</summary>
+              <div class="route-list" id="routes"></div>
+              <button type="button" id="routes-clear" class="link">Clear categories</button>
+            </details>
+          </fieldset>
 
           <div class="field">
             <label for="q">Keywords</label>

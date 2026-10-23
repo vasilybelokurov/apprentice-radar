@@ -26,7 +26,9 @@ const els = {
   locChoices: $<HTMLUListElement>("loc-choices"),
   radius: $<HTMLSelectElement>("radius"),
   levels: $<HTMLDivElement>("levels"),
-  route: $<HTMLSelectElement>("route"),
+  routes: $<HTMLDivElement>("routes"),
+  routesSummary: $<HTMLElement>("routes-summary"),
+  routesClear: $<HTMLButtonElement>("routes-clear"),
   q: $<HTMLInputElement>("q"),
   emp: $<HTMLInputElement>("emp"),
   minpay: $<HTMLInputElement>("minpay"),
@@ -70,8 +72,24 @@ function buildStaticControls(vacancies: Vacancy[]) {
       return el("label", { class: "check", for: `lvl-${n}` }, box, `Level ${n}`);
     }),
   );
-  const routes = [...new Set(vacancies.map((v) => v.course.route).filter((r): r is string => !!r))].sort();
-  for (const r of routes) els.route.append(el("option", { value: r }, r));
+  // Categories in today's data, plus any from the URL that no current vacancy uses (so they can be unticked).
+  const fromData = vacancies.map((v) => v.course.route).filter((r): r is string => !!r);
+  const routes = [...new Set([...fromData, ...criteria.routes])].sort();
+  els.routes.replaceChildren(
+    ...routes.map((r, i) => {
+      const box = el("input", { type: "checkbox", value: r, id: `route-${i}` });
+      return el("label", { class: "check", for: `route-${i}` }, box, r);
+    }),
+  );
+}
+
+function routeBoxes() {
+  return [...els.routes.querySelectorAll<HTMLInputElement>("input")];
+}
+
+function writeRoutesSummary(routes: string[]) {
+  els.routesSummary.textContent = routes.length === 0 ? "All categories" : routes.length === 1 ? routes[0]! : `${routes.length} categories`;
+  els.routesClear.hidden = routes.length === 0;
 }
 
 function writeControls(c: SearchCriteria) {
@@ -81,7 +99,8 @@ function writeControls(c: SearchCriteria) {
   }
   els.radius.value = String(c.radiusMiles);
   for (const box of els.levels.querySelectorAll<HTMLInputElement>("input")) box.checked = c.levels.includes(Number(box.value));
-  els.route.value = c.routes[0] ?? "";
+  for (const box of routeBoxes()) box.checked = c.routes.includes(box.value);
+  writeRoutesSummary(c.routes);
   els.q.value = c.keywords;
   els.emp.value = c.employer;
   els.minpay.value = c.minPay === null ? "" : String(c.minPay);
@@ -98,7 +117,7 @@ function readControls(): SearchCriteria {
     ...criteria,
     radiusMiles: Number(els.radius.value),
     levels: [...els.levels.querySelectorAll<HTMLInputElement>("input:checked")].map((b) => Number(b.value)),
-    routes: els.route.value ? [els.route.value] : [],
+    routes: routeBoxes().filter((b) => b.checked).map((b) => b.value),
     keywords: els.q.value,
     employer: els.emp.value,
     minPay: minpay !== null && Number.isFinite(minpay) && minpay >= 0 ? minpay : null,
@@ -268,6 +287,7 @@ async function start() {
 
   const onChange = () => {
     criteria = readControls();
+    writeRoutesSummary(criteria.routes);
     update();
   };
   els.form.addEventListener("change", (e) => {
@@ -285,6 +305,10 @@ async function start() {
   });
   els.form.addEventListener("submit", (e) => e.preventDefault());
   els.more.addEventListener("click", renderMore);
+  els.routesClear.addEventListener("click", () => {
+    for (const box of routeBoxes()) box.checked = false;
+    onChange();
+  });
   els.reset.addEventListener("click", () => {
     criteria = criteriaFromParams(new URLSearchParams());
     writeControls(criteria);

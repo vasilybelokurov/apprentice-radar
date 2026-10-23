@@ -118,6 +118,13 @@ describe("search filters", () => {
     expect(refs([a, b], crit({ routes: ["Care services"] }))).toEqual([b.ref]);
   });
 
+  it("several categories match any of them", () => {
+    const a = vac();
+    const b = vac({ course: { title: "C", level: 2, route: "Care services", type: "Standard" } });
+    const c = vac({ course: { title: "C", level: 2, route: "Hair and beauty", type: "Standard" } });
+    expect(refs([a, b, c], crit({ routes: ["Care services", "Digital"] })).sort()).toEqual([a.ref, b.ref].sort());
+  });
+
   it("keywords: every word must appear, case- and accent-insensitive, across title/employer/course/description", () => {
     const a = vac({ title: "Software Developer", employer: "Café Systems" });
     const b = vac({ title: "Electrician" });
@@ -188,6 +195,13 @@ describe("URL state", () => {
 
   it("keeps default values out of the URL", () => {
     expect(criteriaToParams(defaultCriteria()).toString()).toBe("");
+  });
+
+  it("several categories round-trip (including commas in names)", () => {
+    const routes = ["Digital", "Legal, finance and accounting"];
+    const p = criteriaToParams(crit({ routes }));
+    expect(p.getAll("route")).toEqual(routes);
+    expect(criteriaFromParams(new URLSearchParams(p.toString())).routes).toEqual(routes);
   });
 
   it("'any' level round-trips", () => {

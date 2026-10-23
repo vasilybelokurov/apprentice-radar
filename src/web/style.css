@@ -69,6 +69,12 @@ button.secondary { background: transparent; color: var(--accent); width: 100%; m
 .checks { display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .check { display: flex; align-items: center; gap: 8px; min-height: 36px; font-weight: 400; }
 .check input { width: 20px; height: 20px; margin: 0; }
+.routes-picker { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.routes-picker > summary { cursor: pointer; min-height: 44px; padding: 10px; }
+.route-list { display: grid; padding: 0 10px; }
+.route-list .check { align-items: flex-start; min-height: 32px; font-size: 0.95rem; }
+.route-list .check input { margin-top: 2px; flex: none; }
+button.link { min-height: 36px; padding: 4px 10px 8px; background: none; border: 0; color: var(--accent); font-weight: 400; text-decoration: underline; }
 .hint { color: var(--muted); font-size: 0.85rem; margin: 6px 0 0; }
 .hint.error { color: var(--badge-soon); }
 .choices { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
