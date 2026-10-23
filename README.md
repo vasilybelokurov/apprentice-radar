@@ -12,6 +12,9 @@ Data comes from the official DfE Display Advert API v2. Coverage is England only
   both to GitHub Pages. If the sync is incomplete or a check fails, nothing is published and the previous site stays up.
 - The page is static. Filtering, distance and sorting run in the browser (`src/lib/search.ts`), and the search is
   kept in the URL so it can be bookmarked.
+- `gcse.html` is a fixed view: vacancies within 5 miles of Cambridge at Levels 2-5 whose essential entry
+  requirements are no more than GCSEs or Functional Skills (`src/lib/requirements.ts`). Those that prefer
+  A levels are labelled; those left out are listed with the reason.
 - Place names and postcodes are resolved with [Postcodes.io](https://postcodes.io/).
 - The DfE key is only ever a GitHub Actions secret (`DFE_API_KEY`) or, locally, in the macOS Keychain.
 
