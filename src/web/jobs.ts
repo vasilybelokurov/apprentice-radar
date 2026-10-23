@@ -1,4 +1,5 @@
 // Jobs page: Reed jobs within 5 miles of Cambridge judged suitable for an 18-year-old with GCSEs.
+import { JOB_CATEGORIES, jobCategory, OTHER_CATEGORY } from "../lib/job-category.ts";
 import type { Job, JobsDataset } from "../lib/types.ts";
 import { el, fmtDate, loadJson, showFreshness } from "./common.ts";
 
@@ -10,6 +11,7 @@ const YEARLY_FACTOR: Record<string, number> = { "per annum": 1, "per hour": 37.5
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const els = {
+  cat: $<HTMLSelectElement>("cat"),
   q: $<HTMLInputElement>("q"),
   ft: $<HTMLInputElement>("ft"),
   perm: $<HTMLInputElement>("perm"),
@@ -67,6 +69,7 @@ function card(j: Job): HTMLLIElement {
     { class: "card" },
     el("h3", {}, el("a", { href: j.url, target: "_blank", rel: "noopener noreferrer" }, j.title)),
     el("p", { class: "employer" }, j.employer ?? "Employer not given"),
+    el("p", { class: "course" }, jobCategory(j.title)),
     badges.length ? el("ul", { class: "badges", "aria-label": "Labels" }, ...badges) : null,
     el("dl", {}, ...rows.flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)])),
     j.summary ? el("p", { class: "summary" }, j.summary) : null,
@@ -89,8 +92,10 @@ function update() {
   const today = new Date().toISOString().slice(0, 10);
   const open = data.jobs.filter((j) => !j.expires || j.expires >= today);
 
-  shownJobs = open
-    .filter((j) => j.fit.suitable)
+  const suitable = open.filter((j) => j.fit.suitable);
+  writeCategoryOptions(suitable);
+  shownJobs = suitable
+    .filter((j) => !els.cat.value || jobCategory(j.title) === els.cat.value)
     .filter((j) => !words.length || words.every((w) => norm(`${j.title} ${j.employer ?? ""} ${j.summary ?? ""}`).includes(w)))
     .filter((j) => !els.ft.checked || j.partTime === false)
     .filter((j) => !els.perm.checked || j.contract === "Permanent")
@@ -126,8 +131,22 @@ function update() {
   );
 }
 
+/** "Type of work" options with today's counts; types with no jobs are left out. */
+function writeCategoryOptions(suitable: Job[]) {
+  const counts = new Map<string, number>();
+  for (const j of suitable) counts.set(jobCategory(j.title), (counts.get(jobCategory(j.title)) ?? 0) + 1);
+  const names = [...JOB_CATEGORIES.map(([name]) => name), OTHER_CATEGORY].filter((n) => counts.has(n) || n === els.cat.value);
+  const selected = els.cat.value;
+  els.cat.replaceChildren(
+    el("option", { value: "" }, `All types (${suitable.length})`),
+    ...names.map((n) => el("option", { value: n }, `${n} (${counts.get(n) ?? 0})`)),
+  );
+  els.cat.value = selected;
+}
+
 function saveUrl() {
   const p = new URLSearchParams();
+  if (els.cat.value) p.set("type", els.cat.value);
   if (els.q.value.trim()) p.set("q", els.q.value.trim());
   for (const box of [els.ft, els.perm, els.noexp, els.nodrive]) if (box.checked) p.set(box.id, "1");
   if (els.sort.value !== "distance") p.set("sort", els.sort.value);
@@ -138,6 +157,12 @@ function saveUrl() {
 async function start() {
   const params = new URLSearchParams(location.search);
   els.q.value = (params.get("q") ?? "").slice(0, 100);
+  // Select the type from the URL now; writeCategoryOptions() rebuilds the list with counts once data loads.
+  const type = (params.get("type") ?? "").slice(0, 60);
+  if (type) {
+    els.cat.append(el("option", { value: type }, type));
+    els.cat.value = type;
+  }
   for (const box of [els.ft, els.perm, els.noexp, els.nodrive]) box.checked = params.get(box.id) === "1";
   const sort = params.get("sort");
   if (sort && (SORTS as readonly string[]).includes(sort)) els.sort.value = sort;
@@ -156,6 +181,7 @@ async function start() {
   };
   for (const box of [els.ft, els.perm, els.noexp, els.nodrive]) box.addEventListener("change", onChange);
   els.sort.addEventListener("change", onChange);
+  els.cat.addEventListener("change", onChange);
   let t: ReturnType<typeof setTimeout> | undefined;
   els.q.addEventListener("input", () => {
     clearTimeout(t);
