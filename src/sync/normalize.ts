@@ -39,13 +39,22 @@ export function normalizeLocations(addresses: DfeVacancy["addresses"]): Location
   });
 }
 
+/** Like clean(), but the source sometimes writes a missing value as the text "null". */
+const cleanField = (s: string | null | undefined) => {
+  const t = clean(s);
+  return t && /^(null|undefined)$/i.test(t) ? null : t;
+};
+
+/** Entry requirements; the source's untyped "None required" placeholder entries are dropped. */
 export function normalizeRequirements(qualifications: DfeVacancy["qualifications"]): Requirement[] {
-  return (qualifications ?? []).map((q) => ({
-    essential: clean(q.weighting)?.toLowerCase() === "essential",
-    type: clean(q.qualificationType),
-    subject: clean(q.subject),
-    grade: clean(q.grade),
-  }));
+  return (qualifications ?? [])
+    .map((q) => ({
+      essential: clean(q.weighting)?.toLowerCase() === "essential",
+      type: cleanField(q.qualificationType),
+      subject: cleanField(q.subject),
+      grade: cleanField(q.grade),
+    }))
+    .filter((r) => !(r.type === null && /^none( required)?$/i.test(r.subject ?? "")));
 }
 
 export function normalizeVacancy(v: DfeVacancy): Vacancy {

@@ -66,5 +66,6 @@ export function gcseFit(v: Pick<Vacancy, "requirements">): GcseFit {
 export function describeRequirement(r: Requirement): string {
   const subject = r.subject && r.subject.toLowerCase() !== r.type?.toLowerCase() ? r.subject : null;
   const head = [r.type, subject].filter(Boolean).join(": ") || "Qualification";
-  return r.grade && !/^(-|n\/?a)$/i.test(r.grade) ? `${head} (${r.grade})` : head;
+  const grade = r.grade && !/^(-|n\/?a)$/i.test(r.grade) && r.grade.toLowerCase() !== r.subject?.toLowerCase() ? r.grade : null;
+  return grade ? `${head} (${grade})` : head;
 }

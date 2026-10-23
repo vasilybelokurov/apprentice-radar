@@ -81,6 +81,14 @@ describe("normalizeVacancy", () => {
     expect(normalize().requirements).toEqual([]);
   });
 
+  it("drops the source's 'None required' placeholder and reads the text \"null\" as missing", () => {
+    const qualifications = [
+      { weighting: "Desired", qualificationType: "null", subject: "None required", grade: "None required" },
+      { weighting: "Essential", qualificationType: "null", subject: "Drivers Licence", grade: "null" },
+    ];
+    expect(normalize({ qualifications }).requirements).toEqual([{ essential: true, type: null, subject: "Drivers Licence", grade: null }]);
+  });
+
   it("accepts a numeric vacancyReference", () => {
     expect(normalize({ vacancyReference: 42 }).ref).toBe("42");
   });
