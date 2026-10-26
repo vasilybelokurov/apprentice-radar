@@ -80,6 +80,13 @@ export interface JobFit {
 
 export interface Job {
   id: string;
+  /** Absent on legacy Reed records. */
+  sourceId?: string;
+  sourceName?: string;
+  /** Employer's sector, used to classify otherwise ambiguous team-member titles. */
+  sector?: "hospitality";
+  /** Coordinates refer to an address/postcode rather than a town centre. */
+  preciseLocation?: boolean;
   title: string;
   employer: string | null;
   /** Reed location: a town or a postcode. */
@@ -120,4 +127,18 @@ export interface JobsDataset {
   radiusMiles: number;
   /** Every job within the radius, suitable or not. */
   jobs: Job[];
+}
+
+export interface JobSourceStatus {
+  id: string;
+  name: string;
+  url: string;
+  checkedAt: string;
+  lastSuccessAt: string | null;
+  status: "ok" | "cached" | "unavailable";
+  count: number;
+}
+
+export interface HospitalityDataset extends JobsDataset {
+  sources: JobSourceStatus[];
 }

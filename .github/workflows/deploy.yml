@@ -45,6 +45,8 @@ jobs:
         env:
           REED_API_KEY: ${{ secrets.REED_API_KEY }}
         run: npm run sync:jobs
+      - name: Sync direct employer jobs
+        run: npm run sync:hospitality
       - run: npm run build
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5

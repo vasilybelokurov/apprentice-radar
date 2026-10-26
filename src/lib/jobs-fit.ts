@@ -5,7 +5,7 @@
 import type { JobFit } from "./types.ts";
 
 /** Bump when the rules change: the sync then re-reads every advert instead of reusing old verdicts. */
-export const JOB_RULE_VERSION = 6;
+export const JOB_RULE_VERSION = 7;
 
 export interface JobInput {
   title: string;
@@ -83,7 +83,12 @@ const RULES: Rule[] = [
   },
   { re: /\b(HGV|LGV|C\+E|Class [12]\b|Cat(egory)? C1?\b|C1 licen[cs]e|7\.5 ?t(onne)?)/, reason: "Needs an HGV or category C licence" },
   { re: /\b(FLT|fork ?lift|counterbalance|reach truck)\b[^.\n]{0,30}\b(licen[cs]e|certificate|ticket)/i, reason: "Needs a forklift licence", preferred: "Forklift licence preferred" },
-  { re: /\b(over|aged|minimum age( of)?|at least)\s*(21|22|23|24|25)\b|\b(21|25)\s*(\+|or over)/i, reason: "Must be 21 or over" },
+  {
+    re: /\b(over|aged|minimum age( of)?|at least)\s*(21|22|23|24|25)\b|\b(21|25)\s*(\+|or over)/i,
+    reason: "Must be 21 or over",
+    // A wage table line such as "21+ £12.76" is a pay band, not an entry requirement.
+    unlessSentence: /^\s*(?:•\s*)?(?:21|25)\s*\+\s*[:–-]?\s*£/,
+  },
   {
     re: /\b(are you|we need|you are|you're|you will be|must be|hiring|seeking|recruit|recruiting|looking for|for)\s+(an?\s+)?((skilled|reliable|confident|motivated|enthusiastic|dedicated|friendly|proactive|highly|suitably|and|,)\s*){0,4}experienced\b/i,
     reason: "Needs previous experience",

@@ -12,6 +12,7 @@
     "sync": "node scripts/sync.ts",
     "sync:local": "DFE_API_KEY=\"$(security find-generic-password -s apprentice-radar-dfe-key -w)\" node scripts/sync.ts",
     "sync:jobs": "node scripts/sync-jobs.ts",
+    "sync:hospitality": "node scripts/sync-hospitality.ts",
     "sync:jobs:local": "REED_API_KEY=\"$(security find-generic-password -s apprentice-radar-reed-key -w)\" node scripts/sync-jobs.ts",
     "verify:dfe": "DFE_API_KEY=\"$(security find-generic-password -s apprentice-radar-dfe-key -w)\" node scripts/verify-dfe-api.ts",
     "typecheck": "tsc --noEmit",

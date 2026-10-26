@@ -3,7 +3,7 @@
 // retail, "Customer Delivery Driver" is delivery.
 
 export const JOB_CATEGORIES = [
-  ["Hospitality & catering", /\b(chef|kitchen|catering|cook|waiter|waitress|waiting staff|barista|bartender|bar staff|hospitality|food service)/i],
+  ["Hospitality & catering", /\b(chef|kitchen|catering|cook|waiter|waitress|waiting staff|barista|bartender|bar staff|bar (?:&|and) waiting|hospitality|food service|food (?:&|and) beverage|restaurant|caf[eé])/i],
   ["Cleaning", /\b(clean(er|ers|ing)|housekeep|domestic assistant|janitor|caretaker)/i],
   ["Schools & education", /\b(teaching|teacher|learning support|school|tutor|tutoring|sen\b|hlta|nursery|admissions|classroom|education|swim|invigilat|exams?)\b/i],
   ["Care & health", /\b(care|carer|support worker|health|phlebotom|optician|dental|pharmacy|nurse|hospital|clinic|tenancy sustainment)/i],
@@ -18,7 +18,10 @@ export const OTHER_CATEGORY = "Other";
 
 export type JobCategory = (typeof JOB_CATEGORIES)[number][0] | typeof OTHER_CATEGORY;
 
-export function jobCategory(title: string): JobCategory {
+export function jobCategory(title: string, sector?: "hospitality"): JobCategory {
+  if (/\bkitchen (sales|design)/i.test(title)) return "Retail & sales";
+  // "Team Member" alone could be retail. Use the employer feed's sector when it is known.
+  if (sector === "hospitality" && /\b(team member|crew member|front of house|reception(?:ist)?|porter|host|server)\b/i.test(title)) return "Hospitality & catering";
   for (const [name, re] of JOB_CATEGORIES) if (re.test(title)) return name;
   return OTHER_CATEGORY;
 }

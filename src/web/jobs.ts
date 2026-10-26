@@ -1,6 +1,7 @@
-// Jobs page: Reed jobs within 5 miles of Cambridge judged suitable for an 18-year-old with GCSEs.
+// Reed and direct-employer jobs within 5 miles of Cambridge, screened for GCSE entry.
 import { JOB_CATEGORIES, jobCategory, OTHER_CATEGORY } from "../lib/job-category.ts";
-import type { Job, JobsDataset } from "../lib/types.ts";
+import { mergeJobs } from "../lib/jobs-data.ts";
+import type { HospitalityDataset, Job, JobsDataset } from "../lib/types.ts";
 import { el, fmtDate, loadJson, showFreshness } from "./common.ts";
 
 const PAGE_SIZE = 25;
@@ -57,23 +58,24 @@ function card(j: Job): HTMLLIElement {
   // A postcode gives a real distance; a place name ("Cambridge") only places the job somewhere in that town.
   const isPostcode = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i.test(j.location);
   const where =
-    isPostcode && j.miles !== null ? `${j.location} · ${j.miles < 10 ? j.miles.toFixed(1) : Math.round(j.miles)} miles` : `${j.location} (no exact address)`;
+    (isPostcode || j.preciseLocation) && j.miles !== null ? `${j.location} · ${j.miles < 10 ? j.miles.toFixed(1) : Math.round(j.miles)} miles` : `${j.location} (no exact address)`;
   const rows: [string, string][] = [
     ["Where", where],
     ["Pay", j.pay.text ?? "Not given"],
     ["Posted", fmtDate(j.posted)],
     ["Closes", fmtDate(j.expires)],
+    ["Source", j.sourceName ?? "Reed"],
   ];
   return el(
     "li",
     { class: "card" },
     el("h3", {}, el("a", { href: j.url, target: "_blank", rel: "noopener noreferrer" }, j.title)),
     el("p", { class: "employer" }, j.employer ?? "Employer not given"),
-    el("p", { class: "course" }, jobCategory(j.title)),
+    el("p", { class: "course" }, jobCategory(j.title, j.sector)),
     badges.length ? el("ul", { class: "badges", "aria-label": "Labels" }, ...badges) : null,
     el("dl", {}, ...rows.flatMap(([k, v]) => [el("dt", {}, k), el("dd", {}, v)])),
     j.summary ? el("p", { class: "summary" }, j.summary) : null,
-    el("p", { class: "actions" }, el("a", { href: j.url, target: "_blank", rel: "noopener noreferrer" }, "Read the full advert and apply on Reed ↗")),
+    el("p", { class: "actions" }, el("a", { href: j.url, target: "_blank", rel: "noopener noreferrer" }, `Read the full advert and apply on ${j.sourceName ?? "Reed"} ↗`)),
   );
 }
 
@@ -95,7 +97,7 @@ function update() {
   const suitable = open.filter((j) => j.fit.suitable);
   writeCategoryOptions(suitable);
   shownJobs = suitable
-    .filter((j) => !els.cat.value || jobCategory(j.title) === els.cat.value)
+    .filter((j) => !els.cat.value || jobCategory(j.title, j.sector) === els.cat.value)
     .filter((j) => !words.length || words.every((w) => norm(`${j.title} ${j.employer ?? ""} ${j.summary ?? ""}`).includes(w)))
     .filter((j) => !els.ft.checked || j.partTime === false)
     .filter((j) => !els.perm.checked || j.contract === "Permanent")
@@ -134,7 +136,7 @@ function update() {
 /** "Type of work" options with today's counts; types with no jobs are left out. */
 function writeCategoryOptions(suitable: Job[]) {
   const counts = new Map<string, number>();
-  for (const j of suitable) counts.set(jobCategory(j.title), (counts.get(jobCategory(j.title)) ?? 0) + 1);
+  for (const j of suitable) counts.set(jobCategory(j.title, j.sector), (counts.get(jobCategory(j.title, j.sector)) ?? 0) + 1);
   const names = [...JOB_CATEGORIES.map(([name]) => name), OTHER_CATEGORY].filter((n) => counts.has(n) || n === els.cat.value);
   const selected = els.cat.value;
   els.cat.replaceChildren(
@@ -168,12 +170,35 @@ async function start() {
   if (sort && (SORTS as readonly string[]).includes(sort)) els.sort.value = sort;
   if (window.matchMedia("(max-width: 899px)").matches) els.panel.open = false;
 
-  data = await loadJson<JobsDataset>("./jobs.json");
+  const [reed, employers] = await Promise.all([
+    loadJson<JobsDataset>("./jobs.json"), loadJson<HospitalityDataset>("./hospitality.json"),
+  ]);
+  try {
+    data = mergeJobs(reed, employers);
+  } catch {
+    els.count.textContent = "The job sources have inconsistent search areas. Please try again later.";
+    return;
+  }
   if (!data) {
     els.count.textContent = "The jobs list isn't available yet. Please try again later.";
     return;
   }
   showFreshness(els.freshness, data);
+  const sourceList = $<HTMLUListElement>("source-status");
+  const stamp = (date: string) => new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }).format(new Date(date));
+  sourceList.append(el("li", {}, el("a", { href: "https://www.reed.co.uk/" }, "Reed"),
+    reed ? ` — updated ${stamp(reed.generatedAt)}` : " — unavailable"));
+  for (const source of employers?.sources ?? []) {
+    const state = source.status === "unavailable" ? "unavailable"
+      : source.status === "cached" ? "using earlier data; latest check failed" : "updated";
+    sourceList.append(el("li", {}, el("a", { href: source.url }, source.name),
+      ` — ${state}${source.lastSuccessAt ? ` ${stamp(source.lastSuccessAt)}` : ""}`));
+  }
+  if (!employers) sourceList.append(el("li", {}, "Direct employer listings — unavailable"));
+  if (!reed || !employers || employers.sources.some((s) => s.status !== "ok")) {
+    els.freshness.textContent += " · some sources could not be refreshed; see Job sources below";
+    els.freshness.classList.add("stale");
+  }
 
   const onChange = () => {
     saveUrl();
