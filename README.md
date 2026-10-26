@@ -12,6 +12,8 @@ Data comes from the official DfE Display Advert API v2. Coverage is England only
   both to GitHub Pages. If the sync is incomplete or a check fails, nothing is published and the previous site stays up.
 - The page is static. Filtering, distance and sorting run in the browser (`src/lib/search.ts`), and the search is
   kept in the URL so it can be bookmarked.
+- Searches default to Cambridge within five miles, with no qualification-level restriction and "Open with GCSEs" enabled.
+  Weekly alerts use the same criteria. Apprenticeship level describes the qualification earned, not the entry requirements.
 - The "Open with GCSEs" filter keeps vacancies whose essential entry requirements are no more than GCSEs or
   Functional Skills, and leaves out degree apprenticeships (`src/lib/requirements.ts`).
 - `jobs.html` combines ordinary jobs within 5 miles of Cambridge from

@@ -72,11 +72,12 @@ describe("search filters", () => {
     expect(refs([open, closed], crit())).toEqual([open.ref]);
   });
 
-  it("defaults to Level 2 and includes Foundation courses at that level", () => {
+  it("defaults to GCSE entry requirements across levels, including Foundation courses", () => {
     const l2 = vac();
     const l2f = vac({ course: { title: "F", level: 2, route: "Digital", type: "Foundation" } });
     const l3 = vac({ course: { title: "C", level: 3, route: "Digital", type: "Standard" } });
-    expect(refs([l2, l2f, l3], crit()).sort()).toEqual([l2.ref, l2f.ref].sort());
+    expect(refs([l2, l2f, l3], crit())).toHaveLength(3);
+    expect(refs([l2, l2f, l3], crit({ levels: [2] })).sort()).toEqual([l2.ref, l2f.ref].sort());
     expect(refs([l2, l2f, l3], crit({ levels: [2, 3] }))).toHaveLength(3);
     expect(refs([l2, l2f, l3], crit({ levels: [] }))).toHaveLength(3); // any level
     expect(refs([l2, l2f, l3], crit({ foundationOnly: true }))).toEqual([l2f.ref]);
@@ -121,7 +122,8 @@ describe("search filters", () => {
     const degree = vac({ course: { title: "D", level: 6, route: "Digital", type: "Standard" } });
     const all = [open, preferred, needsA, degree];
     expect(refs(all, crit({ levels: [], gcseOnly: true })).sort()).toEqual([open.ref, preferred.ref].sort());
-    expect(refs(all, crit({ levels: [] }))).toHaveLength(4);
+    expect(refs(all, crit())).toHaveLength(2);
+    expect(refs(all, crit({ levels: [], gcseOnly: false }))).toHaveLength(4);
   });
 
   it("filters by category", () => {
@@ -200,9 +202,9 @@ describe("URL state", () => {
     expect(back).toEqual({ ...c, place: { label: CAMBRIDGE.label, lat: 52.2049, lon: 0.1197 } });
   });
 
-  it("defaults when empty: Level 2, 5 miles, nearest first, unknown pay included", () => {
+  it("defaults when empty: GCSE eligibility, all levels, 5 miles, nearest first", () => {
     expect(criteriaFromParams(new URLSearchParams())).toEqual(defaultCriteria());
-    expect(defaultCriteria()).toMatchObject({ levels: [2], radiusMiles: 5, sort: "distance", includeUnknownPay: true, includeNational: false, place: null });
+    expect(defaultCriteria()).toMatchObject({ levels: [], gcseOnly: true, radiusMiles: 5, sort: "distance", includeUnknownPay: true, includeNational: false, place: null });
   });
 
   it("keeps default values out of the URL", () => {
@@ -218,15 +220,24 @@ describe("URL state", () => {
 
   it("'any' level round-trips", () => {
     const p = criteriaToParams(crit({ levels: [] }));
-    expect(p.get("lvl")).toBe("any");
+    expect(p.get("lvl")).toBeNull();
+    expect(criteriaFromParams(new URLSearchParams("lvl=any")).levels).toEqual([]);
     expect(criteriaFromParams(p).levels).toEqual([]);
+  });
+
+  it("preserves an explicit GCSE opt-out in shared links", () => {
+    const c = crit({ gcseOnly: false });
+    const p = criteriaToParams(c);
+    expect(p.get("gcse")).toBe("0");
+    expect(criteriaFromParams(p)).toEqual(c);
+    expect(criteriaFromParams(new URLSearchParams("gcse=1&lvl=2,3"))).toMatchObject({ gcseOnly: true, levels: [2, 3] });
   });
 
   it("rejects invalid values", () => {
     const c = criteriaFromParams(new URLSearchParams("lat=999&lon=0&r=-5&lvl=9,x&sort=evil&minpay=abc"));
     expect(c.place).toBeNull();
     expect(c.radiusMiles).toBe(5);
-    expect(c.levels).toEqual([2]);
+    expect(c.levels).toEqual([]);
     expect(c.sort).toBe("distance");
     expect(c.minPay).toBeNull();
   });

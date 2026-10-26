@@ -10,7 +10,8 @@ export type Sort = (typeof SORTS)[number];
 export const DEFAULT_LOCATION_QUERY = "Cambridge, Cambridgeshire";
 export const DEFAULT_RADIUS_MILES = 5;
 export const MAX_RADIUS_MILES = 300;
-export const DEFAULT_LEVELS = [2];
+// Qualification earned is separate from the applicant’s entry qualifications.
+export const DEFAULT_LEVELS: number[] = [];
 
 export interface Place {
   label: string;
@@ -50,7 +51,7 @@ export const defaultCriteria = (): SearchCriteria => ({
   includeUnknownPay: true,
   disabilityConfidentOnly: false,
   foundationOnly: false,
-  gcseOnly: false,
+  gcseOnly: true,
   includeNational: false,
   sort: "distance",
 });
@@ -198,7 +199,7 @@ export function criteriaFromParams(params: URLSearchParams): SearchCriteria {
   c.includeUnknownPay = params.get("unk") !== "0";
   c.disabilityConfidentOnly = params.get("dc") === "1";
   c.foundationOnly = params.get("fdn") === "1";
-  c.gcseOnly = params.get("gcse") === "1";
+  c.gcseOnly = params.get("gcse") !== "0";
   c.includeNational = params.get("nat") === "1";
   const sort = params.get("sort");
   if (sort && (SORTS as readonly string[]).includes(sort)) c.sort = sort as Sort;
@@ -224,7 +225,7 @@ export function criteriaToParams(c: SearchCriteria): URLSearchParams {
   if (!c.includeUnknownPay) p.set("unk", "0");
   if (c.disabilityConfidentOnly) p.set("dc", "1");
   if (c.foundationOnly) p.set("fdn", "1");
-  if (c.gcseOnly) p.set("gcse", "1");
+  if (c.gcseOnly !== d.gcseOnly) p.set("gcse", c.gcseOnly ? "1" : "0");
   if (c.includeNational) p.set("nat", "1");
   if (c.sort !== d.sort) p.set("sort", c.sort);
   return p;

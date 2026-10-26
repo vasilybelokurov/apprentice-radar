@@ -139,11 +139,11 @@ describe("runAlert", () => {
     expect(gh.createIssue).not.toHaveBeenCalled();
   });
 
-  it("the committed alerts.json is valid and targets Cambridge, Level 2, 5 miles", () => {
+  it("the committed alerts.json is valid and targets Cambridge, GCSE eligibility across levels, 5 miles", () => {
     const committed = JSON.parse(readFileSync("alerts.json", "utf8")) as AlertConfig;
     const c = criteriaFromParams(new URLSearchParams(committed.search));
     expect(c.place).toMatchObject({ label: "Cambridge, Cambridgeshire", lat: 52.20486, lon: 0.11968 });
-    expect(c).toMatchObject({ radiusMiles: 5, levels: [2] });
+    expect(c).toMatchObject({ radiusMiles: 5, levels: [], gcseOnly: true });
     expect(committed.assignee).toBe("vasilybelokurov");
   });
 });
